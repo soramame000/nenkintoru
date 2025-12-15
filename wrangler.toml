@@ -14,3 +14,4 @@ service = "nenkintoru"
 [vars]
 LAUNCH_MODE = "invite"
 NEXT_PUBLIC_LAUNCH_MODE = "invite"
+SUPABASE_URL = "https://agtbnphtrcgamzhxpkwr.supabase.co"
