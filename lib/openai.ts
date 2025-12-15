@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import type { Response, ResponseCreateParamsNonStreaming } from "openai/resources/responses/responses";
 
 const DEFAULT_MODEL = "gpt-5.2";
 const DEFAULT_TIMEOUT_MS = 45_000;
@@ -88,7 +89,11 @@ export async function generateWithOpenAI(userPrompt: string) {
   if (!client) throw new Error("OPENAI_API_KEY is not set");
 
   const model = process.env.OPENAI_MODEL ?? DEFAULT_MODEL;
-  const temperature = numberFromEnv(process.env.OPENAI_TEMPERATURE, DEFAULT_TEMPERATURE);
+  const rawTemperature = process.env.OPENAI_TEMPERATURE;
+  const temperature =
+    rawTemperature && rawTemperature.trim().length > 0
+      ? numberFromEnv(rawTemperature, DEFAULT_TEMPERATURE)
+      : undefined;
   const maxOutputTokens = numberFromEnv(
     process.env.OPENAI_MAX_OUTPUT_TOKENS,
     DEFAULT_MAX_OUTPUT_TOKENS
@@ -97,15 +102,32 @@ export async function generateWithOpenAI(userPrompt: string) {
   const verbosity = process.env.OPENAI_VERBOSITY ?? DEFAULT_VERBOSITY;
   const supportsReasoning = model.startsWith("gpt-5") || model.startsWith("o");
 
-  const response = await client.responses.create({
+  const supportsTemperature = !(model.startsWith("gpt-5") || model.startsWith("o"));
+
+  const baseParams: ResponseCreateParamsNonStreaming = {
     model,
     instructions: SYSTEM_INSTRUCTIONS,
     input: userPrompt,
-    temperature,
     max_output_tokens: maxOutputTokens,
+    stream: false,
     ...(supportsReasoning ? { reasoning: { effort: reasoningEffort as any } } : {}),
     text: { verbosity: verbosity as any },
-  });
+    ...(supportsTemperature && typeof temperature === "number" ? { temperature } : {}),
+  };
+
+  let response: Response;
+  try {
+    response = await client.responses.create(baseParams);
+  } catch (err: any) {
+    const message = String(err?.message ?? "");
+    const status = err?.status ?? err?.response?.status;
+    if (status === 400 && message.includes("Unsupported parameter: 'temperature'")) {
+      const { temperature: _ignored, ...withoutTemperature } = baseParams as any;
+      response = await client.responses.create(withoutTemperature);
+    } else {
+      throw err;
+    }
+  }
 
   const text = response.output_text?.trim();
   if (!text) throw new Error("OpenAI response was empty");
