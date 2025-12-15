@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { isInviteModeClient } from "@/lib/clientLaunch";
 
 const links = [
   { href: "/dashboard", label: "ダッシュボード" },
@@ -13,7 +14,7 @@ const links = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const inviteMode = (process.env.NEXT_PUBLIC_LAUNCH_MODE ?? "public") === "invite";
+  const inviteMode = isInviteModeClient();
   const visibleLinks = inviteMode
     ? links.filter((l) => l.href !== "/purchase")
     : links;

@@ -14,19 +14,25 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-    const res = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-      callbackUrl: "/dashboard",
-    });
-    setLoading(false);
-    if (res?.error) {
-      setError("ログインに失敗しました。メールとパスワードを確認してください。");
-    } else {
-      window.location.href = "/dashboard";
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+        callbackUrl: "/dashboard",
+      });
+      if (res?.error) {
+        setError("ログインに失敗しました。メールとパスワードを確認してください。");
+      } else {
+        window.location.href = "/dashboard";
+      }
+    } catch (err) {
+      console.error("login submit failed", err);
+      setError("通信に失敗しました。時間をおいて再試行してください。");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,4 +59,3 @@ export default function LoginForm() {
     </form>
   );
 }
-

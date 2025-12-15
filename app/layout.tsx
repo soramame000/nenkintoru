@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "./providers";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { getLaunchMode } from "@/lib/launch";
 
 const noto = Noto_Sans_JP({
   subsets: ["latin"],
@@ -21,9 +22,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const launchMode = getLaunchMode();
   return (
     <html lang="ja">
       <body className={`${noto.className} bg-slate-50 text-slate-900`}>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `globalThis.__NENKINTORU__=${JSON.stringify({ launchMode })};`,
+          }}
+        />
         <Providers>
           <Header />
           <main className="min-h-screen">{children}</main>

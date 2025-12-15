@@ -6,6 +6,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import { registerSchema } from "@/lib/validations";
+import { isInviteModeClient } from "@/lib/clientLaunch";
 
 export default function RegisterForm() {
   const [form, setForm] = useState({
@@ -16,35 +17,51 @@ export default function RegisterForm() {
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const inviteMode = (process.env.NEXT_PUBLIC_LAUNCH_MODE ?? "public") === "invite";
+  const inviteMode = isInviteModeClient();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const parsed = registerSchema.safeParse(form);
-    if (!parsed.success) {
-      setError(parsed.error.issues[0].message);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    if (!res.ok) {
-      const json = await res.json();
-      setError(json.error || "登録に失敗しました");
+    try {
+      const parsed = registerSchema.safeParse(form);
+      if (!parsed.success) {
+        setError(parsed.error.issues[0].message);
+        return;
+      }
+      setLoading(true);
+      setError(null);
+
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      if (!res.ok) {
+        let message = "登録に失敗しました";
+        try {
+          const json = await res.json();
+          message = json?.error || message;
+        } catch {
+          // JSON以外（HTML等）の場合
+          const text = await res.text().catch(() => "");
+          if (text) message = message;
+        }
+        setError(message);
+        return;
+      }
+
+      await signIn("credentials", {
+        redirect: true,
+        email: form.email,
+        password: form.password,
+        callbackUrl: "/dashboard",
+      });
+    } catch (err) {
+      console.error("register submit failed", err);
+      setError("通信に失敗しました。時間をおいて再試行してください。");
+    } finally {
       setLoading(false);
-      return;
     }
-    await signIn("credentials", {
-      redirect: true,
-      email: form.email,
-      password: form.password,
-      callbackUrl: "/dashboard",
-    });
-    setLoading(false);
   };
 
   return (

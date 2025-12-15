@@ -1,13 +1,14 @@
 import Card from "@/components/ui/Card";
 import RegisterForm from "@/components/auth/RegisterForm";
 import Link from "next/link";
+import { isInviteMode } from "@/lib/launch";
 
 export const metadata = {
   title: "新規登録 | 年金トール君",
 };
 
 export default function RegisterPage() {
-  const inviteMode = process.env.NEXT_PUBLIC_LAUNCH_MODE === "invite";
+  const inviteMode = isInviteMode();
   return (
     <div className="mx-auto flex max-w-md flex-col gap-6 px-4 py-12">
       <div>
