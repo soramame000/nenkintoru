@@ -4,7 +4,7 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !serviceKey) {
-  console.warn("Supabase credentials are missing. Check .env.local.");
+  console.warn("Supabase credentials are missing. Check environment variables.");
 }
 
 function numberFromEnv(raw: string | undefined, fallback: number) {

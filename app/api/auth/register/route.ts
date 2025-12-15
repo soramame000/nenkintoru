@@ -4,6 +4,7 @@ import { registerSchema } from "@/lib/validations";
 import { loginRateLimit } from "@/lib/ratelimit";
 import { canRegisterInInviteMode } from "@/lib/launch";
 import { hashPassword } from "@/lib/password";
+import { supabaseAdmin } from "@/lib/db";
 
 function getClientIp(req: Request) {
   const forwarded = req.headers.get("x-forwarded-for");
@@ -13,6 +14,10 @@ function getClientIp(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: "Supabase未設定です" }, { status: 500 });
+    }
+
     if (loginRateLimit) {
       const ip = getClientIp(req);
       const { success, reset } = await loginRateLimit.limit(`register:${ip}`);

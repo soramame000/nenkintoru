@@ -25,7 +25,8 @@ function getCrypto(): Crypto {
   return c;
 }
 
-const DEFAULT_ITERATIONS = 120_000;
+// Cloudflare Workers' WebCrypto PBKDF2 currently caps iterations at 100000.
+const DEFAULT_ITERATIONS = 100_000;
 
 export async function hashPassword(
   password: string,
