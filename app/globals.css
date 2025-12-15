@@ -2,32 +2,134 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    color-scheme: light;
+    --bg: 248 250 252; /* slate-50 */
+    --fg: 15 23 42; /* slate-900 */
+
+    /* Bright, game-ish accents (kept clean) */
+    --primary: 59 130 246; /* blue-500 */
+    --primary-600: 37 99 235; /* blue-600 */
+    --primary-700: 29 78 216; /* blue-700 */
+    --accent: 168 85 247; /* purple-500 */
+    --accent-2: 20 184 166; /* teal-500 */
+
+    --card: 255 255 255;
+    --muted: 100 116 139; /* slate-500 */
+    --border: 226 232 240; /* slate-200 */
+    --ring: 56 189 248; /* sky-400 */
+  }
+
+  html {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: rgb(var(--bg));
+    color: rgb(var(--fg));
+  }
+
+  main {
+    min-height: calc(100vh - 120px);
+  }
+
+  a {
+    color: inherit;
+  }
+
+  ::selection {
+    background: rgb(191 219 254); /* blue-200 */
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    color: #0f172a;
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-}
+@layer components {
+  .surface {
+    @apply relative overflow-hidden rounded-2xl border border-white/70 bg-white/70 shadow-sm ring-1 ring-slate-900/5 backdrop-blur;
+  }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .surface-strong {
+    @apply relative overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-lg shadow-slate-200/60 ring-1 ring-slate-900/5 backdrop-blur;
+  }
+
+  .surface::after,
+  .surface-strong::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    background:
+      radial-gradient(800px 200px at 15% 0%, rgb(59 130 246 / 0.18), transparent 60%),
+      radial-gradient(900px 220px at 85% 0%, rgb(168 85 247 / 0.16), transparent 60%),
+      radial-gradient(700px 180px at 50% 110%, rgb(20 184 166 / 0.12), transparent 60%);
+    pointer-events: none;
+    opacity: 0.9;
+  }
+
+  .subtle-grid {
+    background-image:
+      radial-gradient(circle at 1px 1px, rgb(59 130 246 / 0.075) 1px, transparent 0),
+      radial-gradient(circle at 1px 1px, rgb(15 23 42 / 0.04) 1px, transparent 0);
+    background-size: 26px 26px, 34px 34px;
+    background-position: 0 0, 8px 10px;
+  }
+
+  .hero-glow {
+    background:
+      radial-gradient(700px 260px at 10% 8%, rgb(59 130 246 / 0.28), transparent 60%),
+      radial-gradient(780px 280px at 92% 10%, rgb(168 85 247 / 0.22), transparent 60%),
+      radial-gradient(680px 240px at 55% 105%, rgb(20 184 166 / 0.12), transparent 60%),
+      linear-gradient(to bottom, rgb(241 245 249), rgb(248 250 252));
+  }
+
+  .sparkle-dots {
+    background-image:
+      radial-gradient(circle at 15% 18%, rgb(255 255 255 / 0.65) 1px, transparent 2px),
+      radial-gradient(circle at 42% 12%, rgb(255 255 255 / 0.55) 1px, transparent 2px),
+      radial-gradient(circle at 68% 20%, rgb(255 255 255 / 0.55) 1px, transparent 2px),
+      radial-gradient(circle at 84% 14%, rgb(255 255 255 / 0.5) 1px, transparent 2px),
+      radial-gradient(circle at 22% 56%, rgb(255 255 255 / 0.45) 1px, transparent 2px),
+      radial-gradient(circle at 78% 62%, rgb(255 255 255 / 0.42) 1px, transparent 2px);
+    background-size: 520px 320px;
+    background-repeat: repeat;
+  }
+
+  @keyframes floaty {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(0, -10px, 0);
+    }
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  .floaty {
+    animation: floaty 8s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .floaty {
+      animation: none;
+    }
+  }
+
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50;
+  }
+
+  .soft-border {
+    @apply border border-slate-200/70 ring-1 ring-slate-900/5;
   }
 }

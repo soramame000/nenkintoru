@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 年金トール君
 
-## Getting Started
+障害年金の「病歴・就労状況等申立書」を最短で下書き生成するNext.js 14アプリ。
 
-First, run the development server:
+## 仕様（再定義）
+
+- `docs/APP_DEFINITION.md`
+
+## セットアップ
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 必須環境変数（.env.local）
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+NEXTAUTH_SECRET=your_nextauth_secret
+NEXTAUTH_URL=http://localhost:3000
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-## Learn More
+OPENAI_API_KEY=your_openai_api_key
+# 任意（未指定なら gpt-5.2）
+OPENAI_MODEL=gpt-5.2
+# 任意（チューニング用）
+OPENAI_TIMEOUT_MS=45000
+OPENAI_MAX_RETRIES=2
+OPENAI_TEMPERATURE=0.4
+OPENAI_MAX_OUTPUT_TOKENS=1800
+OPENAI_REASONING_EFFORT=low
+OPENAI_VERBOSITY=low
 
-To learn more about Next.js, take a look at the following resources:
+STRIPE_SECRET_KEY=sk_test_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
+UPSTASH_REDIS_REST_TOKEN=xxx
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## 主な機能
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- NextAuth（Credentials）+ Supabaseでのメール/パスワード認証
+- Stripe CheckoutとWebhookで3ヶ月サブスク管理（30回まで生成）
+- Upstash Redisで生成APIとログインへのレートリミット
+- OpenAI GPTで申立書下書き生成
+- PDF（@react-pdf/renderer）/Excel（exceljs）出力
+- 5ステップの入力フロー（症状・病歴・就労・追加情報）
+- セキュリティヘッダー（CSP等）と入力バリデーション（Zod）
