@@ -20,10 +20,11 @@ export const SYSTEM_INSTRUCTIONS = `
 - 文体は一人称「私」、敬体（です・ます）で統一する
 - 時系列を明確にし、短い段落で読みやすくまとめる
 - 入力にない「頻度・回数・日付・固有名詞」は書かない（例: 週◯回、月◯回、毎日、会社名、病院名など）
+- 入力にない「症状/支援/出来事」を追加しない（例: 自傷、希死念慮、障害者手帳、ヘルパー、自立支援医療、服薬副作用など）
 
 【書き方の指針】
 - history（病歴）は日付順に並べ、各出来事を「状況→影響（生活/就労への支障）」が分かる形で1〜2文でまとめる
-- symptoms（困難）は「頻度/程度」が伝わるように具体例として文章化する
+- symptoms（困難）は“生活上の困りごと”として、入力にある事実だけで文章化する（頻度・回数を推測しない）
 - employment（就労）は「現在の状態」と「難しい理由（reasons）」を因果が分かる形で書く
 - additional（支援/家族/メッセージ）は事実として簡潔に補足する
 
@@ -102,6 +103,75 @@ function getOpenAIClient() {
   return openaiClient;
 }
 
+function findLikelyHallucinations(output: string, inputJson: string): string[] {
+  const issues: string[] = [];
+
+  const hasDigit = /\d/.test(output);
+  const inputHasDigit = /\d/.test(inputJson);
+  if (hasDigit && !inputHasDigit) issues.push("contains_digits_not_in_input");
+
+  const disallowedPhrases = [
+    "週に",
+    "月に",
+    "毎日",
+    "何日",
+    "回以上",
+    "以上あります",
+    "障害者手帳",
+    "ヘルパー",
+    "自立支援医療",
+    "副作用",
+    "自傷",
+    "死にたい",
+    "希死",
+    "過食",
+    "衝動的に買い物",
+  ];
+
+  for (const phrase of disallowedPhrases) {
+    if (output.includes(phrase) && !inputJson.includes(phrase)) issues.push(`mentions_${phrase}`);
+  }
+
+  return Array.from(new Set(issues));
+}
+
+async function rewriteStrictlyToMatchInput(args: {
+  client: OpenAI;
+  model: string;
+  maxOutputTokens: number;
+  reasoningEffort: string;
+  verbosity: string;
+  inputJson: string;
+  draft: string;
+}): Promise<string> {
+  const supportsReasoning = args.model.startsWith("gpt-5") || args.model.startsWith("o");
+
+  const instructions = `
+あなたは「病歴・就労状況等申立書」の文章編集者です。
+次の「入力JSON」と「下書き」を受け取り、下書きを全面的に書き直してください。
+
+【絶対条件】
+- 入力JSONに明記されていない事実は一切書かない（症状/支援/出来事/回数/頻度/日付/固有名詞/評価の追加は禁止）
+- 数字・回数・頻度（例: 週、月、毎日、◯回、◯年以上 等）は、入力JSONに同じ表現が存在するときだけ書く
+- 箇条書きや羅列は禁止。全て文章（主語+述語）にする
+- 4見出しは順序と表記を完全一致で出力する
+`.trim();
+
+  const response = await args.client.responses.create({
+    model: args.model,
+    instructions,
+    input: `入力JSON:\n${args.inputJson}\n\n下書き:\n${args.draft}`,
+    max_output_tokens: args.maxOutputTokens,
+    stream: false,
+    ...(supportsReasoning ? { reasoning: { effort: args.reasoningEffort as any } } : {}),
+    text: { verbosity: args.verbosity as any },
+  });
+
+  const text = response.output_text?.trim();
+  if (!text) throw new Error("OpenAI response was empty");
+  return ensureFourSections(text);
+}
+
 export async function generateWithOpenAI(userPrompt: string) {
   const client = getOpenAIClient();
   if (!client) throw new Error("OPENAI_API_KEY is not set");
@@ -149,5 +219,18 @@ export async function generateWithOpenAI(userPrompt: string) {
 
   const text = response.output_text?.trim();
   if (!text) throw new Error("OpenAI response was empty");
-  return ensureFourSections(text);
+
+  const normalized = ensureFourSections(text);
+  const issues = findLikelyHallucinations(normalized, userPrompt);
+  if (issues.length === 0) return normalized;
+
+  return await rewriteStrictlyToMatchInput({
+    client,
+    model,
+    maxOutputTokens,
+    reasoningEffort,
+    verbosity,
+    inputJson: userPrompt,
+    draft: normalized,
+  });
 }
