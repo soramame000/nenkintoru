@@ -17,6 +17,7 @@ const initialData: GenerationInput = {
   firstVisitDate: "",
   treatmentStatus: "outpatient",
   symptoms: [],
+  symptomsFreeText: "",
   history: [],
   employment: {
     current: "",

@@ -23,6 +23,11 @@ export const historySchema = z.object({
   note: z.string().trim().max(50).optional(),
 });
 
+export const symptomWithSeveritySchema = z.object({
+  symptom: z.string().trim().min(1),
+  severity: z.enum(["always", "often", "sometimes"]),
+});
+
 export const generateInputSchema = z.object({
   diagnosis: z.enum(["depression", "bipolar"]),
   firstVisitDate: z
@@ -34,7 +39,8 @@ export const generateInputSchema = z.object({
       { message: "初診日（年月）を入力してください" }
     ),
   treatmentStatus: z.enum(["outpatient", "inpatient", "suspended"]),
-  symptoms: z.array(z.string()).min(1, "1つ以上選択してください"),
+  symptoms: z.array(symptomWithSeveritySchema).min(1, "1つ以上選択してください"),
+  symptomsFreeText: z.string().max(500).optional(),
   history: z.array(historySchema).min(1),
   employment: z.object({
     current: z.string().trim().min(1, "現在の就労状況を選択してください"),

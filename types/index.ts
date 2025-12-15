@@ -7,11 +7,19 @@ export type HistoryItem = {
   note?: string;
 };
 
+export type SeverityType = "always" | "often" | "sometimes";
+
+export type SymptomWithSeverity = {
+  symptom: string;
+  severity: SeverityType;
+};
+
 export type GenerationInput = {
   diagnosis: DiagnosisType;
   firstVisitDate: string;
   treatmentStatus: "outpatient" | "inpatient" | "suspended";
-  symptoms: string[];
+  symptoms: SymptomWithSeverity[];
+  symptomsFreeText?: string;
   history: HistoryItem[];
   employment: {
     current: string;

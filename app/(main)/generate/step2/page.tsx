@@ -20,12 +20,14 @@ export default function Step2Page() {
       <StepIndicator current={2} />
       <Card title="症状・生活の困難">
         <Alert type="info" className="mb-4">
-          「できる/できない」ではなく、<b>どれくらいの頻度で困るか</b>を意識して選ぶと文章が強くなります。
+          当てはまる症状を選び、<b>頻度（常に/よくある/時々）</b>を選択してください。
         </Alert>
         <SymptomSelector
           diagnosis={data.diagnosis}
           selected={data.symptoms}
           onChange={(symptoms) => update({ symptoms })}
+          freeText={data.symptomsFreeText ?? ""}
+          onFreeTextChange={(symptomsFreeText) => update({ symptomsFreeText })}
         />
         <div className="mt-6 flex justify-between">
           <Button variant="secondary" onClick={back}>
