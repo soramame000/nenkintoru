@@ -7,6 +7,8 @@ function buildCsp() {
     // Next devで必要になりやすい
     ...(isDev ? ["'unsafe-eval'"] : []),
     "https://js.stripe.com",
+    // Cloudflare Web Analytics (beacon)
+    "https://static.cloudflareinsights.com",
   ];
 
   const connectSrc = [

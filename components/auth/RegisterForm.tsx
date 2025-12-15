@@ -6,7 +6,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import { registerSchema } from "@/lib/validations";
-import { isInviteModeClient } from "@/lib/clientLaunch";
+import { useIsInviteMode } from "@/lib/launchContext";
 
 export default function RegisterForm() {
   const [form, setForm] = useState({
@@ -17,7 +17,7 @@ export default function RegisterForm() {
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const inviteMode = isInviteModeClient();
+  const inviteMode = useIsInviteMode();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();

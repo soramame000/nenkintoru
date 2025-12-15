@@ -26,12 +26,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className={`${noto.className} bg-slate-50 text-slate-900`}>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `globalThis.__NENKINTORU__=${JSON.stringify({ launchMode })};`,
-          }}
-        />
-        <Providers>
+        <Providers launchMode={launchMode}>
           <Header />
           <main className="min-h-screen">{children}</main>
           <Footer />

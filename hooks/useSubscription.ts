@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { isInviteModeClient } from "@/lib/clientLaunch";
+import { useIsInviteMode } from "@/lib/launchContext";
 
 type Subscription = {
   status: string;
@@ -9,7 +9,7 @@ type Subscription = {
 };
 
 export function useSubscription() {
-  const inviteMode = isInviteModeClient();
+  const inviteMode = useIsInviteMode();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(!inviteMode);
   const [refreshing, setRefreshing] = useState(false);

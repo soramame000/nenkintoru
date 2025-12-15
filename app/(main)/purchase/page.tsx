@@ -5,12 +5,12 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import Sidebar from "@/components/layout/Sidebar";
-import { isInviteModeClient } from "@/lib/clientLaunch";
+import { useIsInviteMode } from "@/lib/launchContext";
 
 export default function PurchasePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const inviteMode = isInviteModeClient();
+  const inviteMode = useIsInviteMode();
 
   const handlePurchase = async () => {
     if (inviteMode) return;

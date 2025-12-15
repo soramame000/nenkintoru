@@ -7,7 +7,7 @@ import Loading from "@/components/ui/Loading";
 import Alert from "@/components/ui/Alert";
 import Sidebar from "@/components/layout/Sidebar";
 import { useSubscription } from "@/hooks/useSubscription";
-import { isInviteModeClient } from "@/lib/clientLaunch";
+import { useIsInviteMode } from "@/lib/launchContext";
 
 type Generation = {
   id: string;
@@ -17,7 +17,7 @@ type Generation = {
 };
 
 export default function DashboardPage() {
-  const inviteMode = isInviteModeClient();
+  const inviteMode = useIsInviteMode();
   const { subscription, loading, error } = useSubscription();
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [loadingGen, setLoadingGen] = useState(true);
