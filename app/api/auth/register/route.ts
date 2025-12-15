@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
 import { insertUser, getUserByEmail } from "@/lib/db";
 import { registerSchema } from "@/lib/validations";
 import { loginRateLimit } from "@/lib/ratelimit";
 import { canRegisterInInviteMode } from "@/lib/launch";
+import { hashPassword } from "@/lib/password";
 
 function getClientIp(req: Request) {
   const forwarded = req.headers.get("x-forwarded-for");
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const password_hash = await bcrypt.hash(password, 12);
+    const password_hash = await hashPassword(password);
     const { error, data } = await insertUser({
       email: normalizedEmail,
       password_hash,

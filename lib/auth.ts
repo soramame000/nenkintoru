@@ -1,8 +1,8 @@
 import { type NextAuthOptions, getServerSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
 import { getUserByEmail } from "./db";
 import { loginRateLimit } from "./ratelimit";
+import { verifyPassword } from "./password";
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -51,10 +51,7 @@ export const authOptions: NextAuthOptions = {
         const user = await getUserByEmail(email);
         if (!user?.password_hash) return null;
         if (!user?.email) return null;
-        const isValid = await bcrypt.compare(
-          credentials.password,
-          user.password_hash
-        );
+        const isValid = await verifyPassword(credentials.password, user.password_hash);
         if (!isValid) return null;
         return {
           id: user.id,
@@ -84,4 +81,3 @@ export const authOptions: NextAuthOptions = {
 export async function getCurrentSession() {
   return getServerSession(authOptions);
 }
-
