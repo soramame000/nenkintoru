@@ -7,10 +7,37 @@ if (!supabaseUrl || !serviceKey) {
   console.warn("Supabase credentials are missing. Check .env.local.");
 }
 
+function numberFromEnv(raw: string | undefined, fallback: number) {
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+const SUPABASE_TIMEOUT_MS = numberFromEnv(process.env.SUPABASE_TIMEOUT_MS, 12_000);
+
+function createTimeoutFetch(timeoutMs: number): typeof fetch {
+  return async (input: any, init?: RequestInit) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const upstreamSignal = init?.signal;
+      const signal =
+        upstreamSignal && typeof (AbortSignal as any)?.any === "function"
+          ? (AbortSignal as any).any([upstreamSignal, controller.signal])
+          : upstreamSignal ?? controller.signal;
+      return await fetch(input, { ...init, signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+}
+
 export const supabaseAdmin = supabaseUrl && serviceKey
   ? createClient(supabaseUrl, serviceKey, {
       auth: {
         persistSession: false,
+      },
+      global: {
+        fetch: createTimeoutFetch(SUPABASE_TIMEOUT_MS),
       },
     })
   : null;

@@ -43,19 +43,23 @@ export default function RegisterForm() {
           message = json?.error || message;
         } catch {
           // JSON以外（HTML等）の場合
-          const text = await res.text().catch(() => "");
-          if (text) message = message;
+          await res.text().catch(() => "");
         }
         setError(message);
         return;
       }
 
-      await signIn("credentials", {
-        redirect: true,
+      const signInRes = await signIn("credentials", {
+        redirect: false,
         email: form.email,
         password: form.password,
         callbackUrl: "/dashboard",
       });
+      if (signInRes?.error) {
+        setError("登録は完了しましたが、ログインに失敗しました。ログイン画面からお試しください。");
+        return;
+      }
+      window.location.href = "/dashboard";
     } catch (err) {
       console.error("register submit failed", err);
       setError("通信に失敗しました。時間をおいて再試行してください。");
